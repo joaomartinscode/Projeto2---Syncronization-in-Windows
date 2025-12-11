@@ -1,221 +1,153 @@
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <windows.h>
 
-#define NPROD 10
-#define NCONS 5
+#define MAX_LINE 256
 
-int capacity = 5;
-int items = 0;
-HANDLE mutex;
+HANDLE mutexRead, mutexWrite;
+HANDLE semaphoreRead, semaphoreWrite;
 
+typedef struct Order {
+	int id;
+	char customerName[50];
+	int quantidade;
+	float precoTotal;
+	struct Order* next;
+} Order;
 
-// Função para importar data para os arrays + inicialização
-void read_data() {
+Order* list = NULL;
 
-	system("cls");
-	printf(" ***  Spotify da Wish  ***\n\n");
-
-	//Inicializar todas as matrizes com 0, \0
-	initialization();
-
-	// Preencher matriz de utilizadores
-	FILE* file_users = fopen("utilizadores.txt", "r");
-	if (file_users == NULL) { printf(" Erro: Abrir ficheiro utilizador    - LEITURA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro utilizador - LEITURA\n");
-		i = 0;
-		while (fgets(line, sizeof(line), file_users)) {
-			line[strcspn(line, "\n")] = '\0';
-			switch (i % 4) {
-			case 0: { sscanf(line, "%4d", &users[i / 4].id); break; }
-			case 1: { strcpy(users[i / 4].name, line); break; }
-			case 2: { strcpy(users[i / 4].email, line); break; }
-			case 3: { strcpy(users[i / 4].password, line); break; }
-			} i++;
-		} fclose(file_users);
-	}
-
-	// Preencher matriz de conteudos
-	FILE* file_contents = fopen("conteudos.txt", "r");
-	if (file_contents == NULL) { printf(" Erro: Abrir ficheiro conteudo      - LEITURA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro conteudo   - LEITURA\n");
-		i = 0;
-		while (fgets(line, sizeof(line), file_contents)) {
-			line[strcspn(line, "\n")] = '\0';
-			switch (i % 5) {
-			case 0: { sscanf(line, "%4d %4d %4d %4d", &contents[i / 5].id, &contents[i / 5].day, &contents[i / 5].month, &contents[i / 5].year);    break; }
-			case 1: { strcpy(contents[i / 5].title, line); break; }
-			case 2: { strcpy(contents[i / 5].type, line); break; }
-			case 3: { strcpy(contents[i / 5].author, line); break; }
-			case 4: { strcpy(contents[i / 5].genre, line); break; }
-			} i++;
-		} fclose(file_contents);
-	}
-
-	// Preencher matriz de playlists
-	FILE* file_playlists = fopen("playlists.txt", "r");
-	if (file_playlists == NULL) { printf(" Erro: Abrir ficheiro playlist      - LEITURA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro playlist   - LEITURA\n");
-		i = 0;
-		while (fgets(line, sizeof(line), file_playlists)) {
-			line[strcspn(line, "\n")] = '\0';	
-			switch (i % 4) {
-			case 0: { sscanf(line, "%4d %4d", &playlists[i / 4].id, &playlists[i / 4].id_owner); break; }
-			case 1: { strcpy(playlists[i / 4].name, line); break; }
-			case 2: { strcpy(playlists[i / 4].type, line); break; }
-			case 3: {
-				char* ptr = line; // Apontador que aponta o array line
-				for (j = 0; j < LIM; j++) {
-					sscanf(ptr, "%4d", &playlists[i / 4].content_id[j]);
-					ptr += 4; // mover o apontador 4 "chars" para a frente
-				} break;
-			}
-			} i++;
-		} fclose(file_playlists);
-	}
-
-	printf(" Inicializacao completa!\n\n");
-	printf(" ********** ~o~ **********\n\n ");
-	sleep(WAIT);
-	system("cls");
-}
-/* -------------------------------------------- Guardar Informações ---------------------------------------------------*/
-
-void save_data() {
-
-	system("cls");
-	printf(" ***  Spotify da Wish  ***\n\n");
-
-	// Guardar dados no txt "utilizadores"
-	FILE* file_users = fopen("utilizadores.txt", "w");
-	if (!file_users) { printf(" Erro: Abrir ficheiro utilizadores\t - ESCRITA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro utilizadores\t - ESCRITA\n");
-		for (i = 0; i < MAX; i++) {
-			if (users[i].id != 0) {
-				fprintf(file_users, "%4i\n%s\n%s\n%s\n", users[i].id, users[i].name, users[i].email, users[i].password);
-			}
-		} fclose(file_users);
-	}
-
-	// Guardar dados no txt "conteudos"
-	FILE* file_contents = fopen("conteudos.txt", "w");
-	if (!file_contents) { printf(" Erro: Abrir ficheiro conteudos\t - ESCRITA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro conteudos\t - ESCRITA\n");
-		for (i = 0; i < MAX; i++) {
-			if (contents[i].id != 0) {
-				fprintf(file_contents, "%4i %4i %4i %4i\n%s\n%s\n%s\n%s\n", contents[i].id, contents[i].day, contents[i].month,
-					contents[i].year, contents[i].title, contents[i].type, contents[i].author, contents[i].genre);
-			}
-		} fclose(file_contents);
-	}
-
-	// Guardar dados no txt "playlists"
-	FILE* file_playlists = fopen("playlists.txt", "w");
-	if (!file_playlists) { printf(" Erro: Abrir ficheiro playlists\t - ESCRITA\n"); }
-	else {
-		printf(" Sucesso: Abrir ficheiro playlists\t - ESCRITA\n");
-		for (i = 0; i < MAX; i++) {
-			if (playlists[i].id != 0) {
-				fprintf(file_playlists, "%4i %4i\n%s\n%s\n", playlists[i].id, playlists[i].id_owner, playlists[i].name, playlists[i].type);
-				for (j = 0; j < LIM; j++) {
-					fprintf(file_playlists, "%4i", playlists[i].content_id[j]);
-				} fprintf(file_playlists, "\n");
-			}
-		} fclose(file_playlists);
-	}
-
-	printf("\n ********** ~o~ **********\n\n ");
-}
-
-DWORD WINAPI producer(LPVOID T)
+DWORD WINAPI worker(LPVOID params)
 {
-	int* threadID;
-	threadID = (int*)T;
-	while (1) {
-		WaitForSingleObject(mutex, INFINITE);
-		if (items < capacity) {
-			items++;
-			printf("\n Stored Box: %d\t\t ThreadID: %d", items, threadID);
-			ReleaseMutex(mutex);
-			Sleep(1000);
-		}
-		else {
-			printf("\n Max capacity.\t\t ThreadID: %d", threadID);
-			ReleaseMutex(mutex);
-			Sleep(1000);
-		}
-
-	}
 	return 0;
 }
 
-DWORD WINAPI consumer(LPVOID T)
-
+DWORD WINAPI monitor(LPVOID params)
 {
-	int* threadID;
-	threadID = (int*)T;
-	while (1) {
-		WaitForSingleObject(mutex, INFINITE);
-		if (items > 0) {
-			items--;
-			printf("\n Removed Box: %d\t\t ThreadID: %d", items, threadID);
-			ReleaseMutex(mutex);
-			Sleep(2000);
-		}
-		else {
-			printf("\n Empty.\t\t ThreadID: %d", threadID);
-			ReleaseMutex(mutex);
-			Sleep(2000);
-		}
-	}
 	return 0;
+}
+
+void mainErrorHandeling(int argc, char* argv[]) {
+	if (argc != 6) {
+		printf("Incorret number of arguments!\n Syntax: <Filename> <NWorkers> <MaxOrders> <MinWorkTime> <MaxWorkTime>\n");
+		exit(1);
+	}
+
+	if (atoi(argv[2]) == 0 && argv[2][0] != '0') {
+		printf("Invalid number of workers\n");
+		exit(1);
+	}
+
+	if (atoi(argv[3]) == 0 && argv[3][0] != '0') {
+		printf("Invalid number of max orders\n");
+		exit(1);
+	}
+
+	if (atoi(argv[4]) == 0 && argv[4][0] != '0') {
+		printf("Invalid minimum worker duration\n");
+		exit(1);
+	}
+
+	if (atoi(argv[5]) == 0 && argv[4][0] != '0') {
+		printf("Invalid maximum worker duration\n");
+		exit(1);
+	}
 }
 
 int main(int argc, char* argv[])
 {
+	mainErrorHandeling(argc, argv);
 
-	int i;
+	char* filePath = argv[1];
+	int nWorkers = atoi(argv[2]);
+	int maxOrders = atoi(argv[3]);
+	int minWorkTime = atoi(argv[4]);
+	int maxWorkTime = atoi(argv[5]);
 
-	if (argc <= 4) {
-		printf("To few arguments\n");
-		return 0;
-	} 
-
-	DWORD threadIDConsumer[NCONS], threadIDProducer[NPROD];
-	HANDLE threadHConsumer[NCONS], threadHProducer[NPROD];
-
-	mutex = CreateMutexA(NULL, FALSE, NULL);
-	if (mutex == NULL) return 0;
-
-	for (i = 0; i < NPROD; i++) {
-		threadHProducer[i] = CreateThread(NULL, 0, producer, (LPVOID)i, 0, &threadIDProducer[i]);
-		if (threadHProducer[i] == NULL) return 0;
-	}
-	for (i = 0; i < NCONS; i++) {
-		threadHConsumer[i] = CreateThread(NULL, 0, consumer, (LPVOID)i, 0, &threadIDConsumer[i]);
-		if (threadHConsumer[i] == NULL) return 0;
+	FILE* file = fopen(filePath, "r");
+	if (!file) {
+		printf("Erro a abrir ficheiro: %s\n", filePath);
+		return 1;
 	}
 
-	for (i = 0; i < NCONS; i++) {
-		WaitForSingleObject(threadHConsumer[i], INFINITE);
+	DWORD* threadIDWorker = (DWORD*)malloc(sizeof(DWORD) * nWorkers);
+	DWORD threadIDMonitor;
+	HANDLE* threadHWorker = (HANDLE*)malloc(sizeof(HANDLE) * nWorkers);
+	HANDLE threadHMonitor;
+
+	mutexRead = CreateMutex(NULL, FALSE, NULL);
+	if (mutexRead == NULL) {
+		printf("Create read mutex failed!\n");
+		exit(1);
 	}
 
-	for (i = 0; i < NPROD; i++) {
-		WaitForSingleObject(threadHProducer[i], INFINITE);
+	mutexWrite = CreateMutex(NULL, FALSE, NULL);
+	if (mutexWrite == NULL) {
+		printf("Create write mutex failed!\n");
+		exit(1);
+	};
+
+	semaphoreRead = CreateSemaphore(NULL, maxOrders, maxOrders, NULL);
+	if (semaphoreRead == NULL) {
+		printf("Create read semaphore failed!\n");
+		exit(1);
+	};
+
+	semaphoreWrite = CreateSemaphore(NULL, 0, maxOrders, NULL);
+	if (semaphoreWrite == NULL) {
+		printf("Create write semaphore failed!\n");
+		exit(1);
+	};
+
+	threadHMonitor = CreateThread(NULL, 0, monitor, (LPVOID)list, 0, &threadIDMonitor);
+	if (threadHMonitor == NULL) return 0;
+
+	for (int i = 0; i < nWorkers; i++) {
+		threadHWorker[i] = CreateThread(NULL, 0, worker, (LPVOID)list, 0, &threadIDWorker[i]);
+		if (threadHWorker[i] == NULL) return 0;
 	}
 
-	for (i = 0; i < NCONS; i++) {
-		CloseHandle(threadHConsumer[i]);
+	int idTemp;
+	char nameTemp[50];
+	int qtdTemp;
+	float priceTemp;
+
+	while (fscanf(file, "%d;%49[^;];%d;%f", &idTemp, nameTemp, &qtdTemp, &priceTemp) == 4)
+	{
+		Order* newOrder = (Order*)malloc(sizeof(Order));
+		if (newOrder == NULL) {
+			printf("Erro de memoria\n");
+			break;
+		}
+
+		newOrder->id = idTemp;
+		strcpy(newOrder->customerName, nameTemp);
+		newOrder->quantidade = qtdTemp;
+		newOrder->precoTotal = priceTemp;
+
+		WaitForSingleObject(semaphoreRead, INFINITE);
+		WaitForSingleObject(mutexWrite, INFINITE);
+
+		newOrder->next = list;
+		list = newOrder;
+
+		ReleaseMutex(mutexWrite);
+		ReleaseSemaphore(semaphoreWrite, 1, NULL);
 	}
 
-	for (i = 0; i < NPROD; i++) {
-		CloseHandle(threadHProducer[i]);
+	fclose(file);
+
+	for (int i = 0; i < nWorkers; i++) {
+		WaitForSingleObject(threadHWorker[i], INFINITE);
 	}
+
+	WaitForSingleObject(threadHMonitor, INFINITE);
+
+	for (int i = 0; i < nWorkers; i++) {
+		CloseHandle(threadHWorker[i]);
+	}
+
+	CloseHandle(threadHMonitor);
 
 	return 0;
 }
