@@ -61,7 +61,7 @@ void read_data() {
 		printf(" Sucesso: Abrir ficheiro playlist   - LEITURA\n");
 		i = 0;
 		while (fgets(line, sizeof(line), file_playlists)) {
-			line[strcspn(line, "\n")] = '\0';
+			line[strcspn(line, "\n")] = '\0';	
 			switch (i % 4) {
 			case 0: { sscanf(line, "%4d %4d", &playlists[i / 4].id, &playlists[i / 4].id_owner); break; }
 			case 1: { strcpy(playlists[i / 4].name, line); break; }
@@ -180,6 +180,11 @@ int main(int argc, char* argv[])
 {
 
 	int i;
+
+	if (argc <= 4) {
+		printf("To few arguments\n");
+		return 0;
+	} 
 
 	DWORD threadIDConsumer[NCONS], threadIDProducer[NPROD];
 	HANDLE threadHConsumer[NCONS], threadHProducer[NPROD];
