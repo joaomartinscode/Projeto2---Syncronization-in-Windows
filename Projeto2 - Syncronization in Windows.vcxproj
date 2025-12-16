@@ -129,6 +129,11 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\Downloads\thread - main.txt" />
+    <Text Include="..\..\..\Downloads\thread - monitor.txt" />
+    <Text Include="..\..\..\Downloads\thread - worker.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

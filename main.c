@@ -207,7 +207,6 @@ int main(int argc, char* argv[])
 		printf("Erro a abrir ficheiro: %s\n", filePath);
 		return 1;
 	}
-	remove("output.log");
 
 	DWORD* threadIDWorker = (DWORD*)malloc(sizeof(DWORD) * nWorkers);
 	DWORD threadIDMonitor;

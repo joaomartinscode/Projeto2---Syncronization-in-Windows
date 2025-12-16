@@ -19,4 +19,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\Downloads\thread - main.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="..\..\..\Downloads\thread - worker.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="..\..\..\Downloads\thread - monitor.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
