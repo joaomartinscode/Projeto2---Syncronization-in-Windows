@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{140fe5be-7863-44ab-9816-bf366fa20aa1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -20,14 +23,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\..\Downloads\thread - main.txt">
-      <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="..\..\..\Downloads\thread - worker.txt">
-      <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="..\..\..\Downloads\thread - monitor.txt">
-      <Filter>Source Files</Filter>
-    </Text>
+    <None Include="pseudocodigo.md">
+      <Filter>Docs</Filter>
+    </None>
   </ItemGroup>
 </Project>
