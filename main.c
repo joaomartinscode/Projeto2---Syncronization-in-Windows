@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
+#include <string.h>
 
 #define MAX_LINE 256
 
@@ -92,13 +93,15 @@ DWORD WINAPI worker(LPVOID params)
 
 		WaitForSingleObject(mutexVariables, INFINITE);
 		countProcessing++;
+		int waitTime = minWorkTime + (rand() % (maxWorkTime - minWorkTime + 1));
 		ReleaseMutex(mutexVariables);
 
-		int waitTime = minWorkTime + (rand() % (maxWorkTime - minWorkTime + 1));
 		Sleep(waitTime);
 
 		WaitForSingleObject(mutexOutput, INFINITE);
 		if (logFile) {
+			printf("Worker %d processou a encomenda %d (Cliente: %s)\n",
+				myID, myOrder->id, myOrder->customerName);
 			fprintf(logFile, "Worker %d processou a encomenda %d (Cliente: %s)\n",
 				myID, myOrder->id, myOrder->customerName);
 			fflush(logFile);
@@ -156,43 +159,46 @@ void mainErrorHandeling(int argc, char* argv[]) {
 	}
 
 	if (atoi(argv[2]) <= 0) {
-		printf("Erro: Numero de workers invalido (deve ser > 0).\n");
+		printf("Erro: Numero de workers invalido.\n");
 		exit(1);
 	}
 
 	if (atoi(argv[3]) <= 0) {
-		printf("Erro: Numero maximo de ordens invalido (deve ser > 0).\n");
+		printf("Erro: Numero maximo de ordens invalido.\n");
 		exit(1);
 	}
 
-	if (atoi(argv[4]) < 0) {
-		printf("Erro: Duracao minima invalida (nao pode ser negativa).\n");
+	if (atoi(argv[2]) > atoi(argv[3])) {
+		printf("ATENCAO: Numero de trabalhadores maior que bloco de encomendas!!");
+	}
+
+	minWorkTime = atoi(argv[4]);
+	maxWorkTime = atoi(argv[5]);
+
+	if (minWorkTime <= 0) {
+		printf("Erro: Duracao minima invalida.\n");
 		exit(1);
 	}
 
-	int minTime = atoi(argv[4]);
-	int maxTime = atoi(argv[5]);
-
-	if (maxTime <= 0) {
-		printf("Erro: Duracao maxima invalida (deve ser > 0).\n");
+	if (maxWorkTime <= 0) {
+		printf("Erro: Duracao maxima invalida.\n");
 		exit(1);
 	}
 
-	if (maxTime < minTime) {
-		printf("Erro: Duracao maxima (%d) nao pode ser menor que a minima (%d).\n", maxTime, minTime);
+	if (maxWorkTime < minWorkTime) {
+		printf("Erro: Duracao maxima (%d) nao pode ser menor que a minima (%d).\n", maxWorkTime, minWorkTime);
 		exit(1);
 	}
 }
 
 int main(int argc, char* argv[])
 {
+
 	mainErrorHandeling(argc, argv);
 
 	char* filePath = argv[1];
 	int nWorkers = atoi(argv[2]);
 	int maxOrders = atoi(argv[3]);
-	minWorkTime = atoi(argv[4]);
-	maxWorkTime = atoi(argv[5]);
 
 	srand(time(NULL));
 
